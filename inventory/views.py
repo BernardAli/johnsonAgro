@@ -1,14 +1,34 @@
-from django.shortcuts import render
+import csv
+
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models.aggregates import Sum
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView
 
-from .models import Category, Customers
+from .forms import StockCreateForm, StockUpdateForm, IssueForm, ReceiveForm, StockHistorySearchForm
+from .models import Category, Customers, Stock, StockHistory
 
 
 def index_page(request):
     customers_count = Customers.objects.all().count()
+    items_count = Stock.objects.all().count()
+    recent_activities = StockHistory.objects.all().order_by("-last_updated")[:10]
+    receivables = StockHistory.objects.values('sale_to').annotate(dcount=Sum('balance')).filter(dcount__gt=0)
+    total_debt = StockHistory.objects.aggregate(Sum('balance'))['balance__sum']
+    total_sales = StockHistory.objects.aggregate(Sum('total_sale_price'))['total_sale_price__sum']
+    recent_sales = StockHistory.objects.filter(sale_quantity__gt=0).order_by("-last_updated")
+
     context = {
-        'customers_count': customers_count
+        'customers_count': customers_count,
+        'items_count': items_count,
+        'receivables': receivables,
+        'total_debt': total_debt,
+        "recent_sales": recent_sales,
+        'total_sales': total_sales,
+        'recent_activities': recent_activities
     }
     return render(request, 'inventory/home.html', context)
 
@@ -73,3 +93,208 @@ class CustomerDeleteView(DeleteView):
     model = Customers
     template_name = 'inventory/customers_delete.html'
     success_url = reverse_lazy("customer_list")
+
+
+def list_item(request):
+    queryset = Stock.objects.all()
+    context = {
+        "queryset": queryset,
+    }
+    return render(request, "inventory/list_item.html", context)
+
+
+def stock_detail(request, pk):
+    queryset = Stock.objects.get(id=pk)
+    context = {
+        "title": queryset.item_name,
+        "queryset": queryset,
+    }
+    return render(request, "inventory/stock_detail.html", context)
+
+
+def add_items(request):
+    form = StockCreateForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Successfully Added')
+        return redirect('list_items')
+    context = {
+        "form": form,
+    }
+    return render(request, "inventory/add_item.html", context)
+
+
+def update_items(request, pk):
+    queryset = Stock.objects.get(id=pk)
+    form = StockUpdateForm(instance=queryset)
+    if request.method == 'POST':
+        form = StockUpdateForm(request.POST, instance=queryset)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Successfully Updated')
+            return redirect('list_items')
+
+    context = {
+        'form': form
+    }
+    return render(request, 'inventory/add_item.html', context)
+
+
+def issue_items(request, pk):
+    queryset = Stock.objects.get(id=pk)
+    form = IssueForm(request.POST or None, instance=queryset)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        if instance.unit_sale_price == 0:
+            messages.success(request, "Price can not be zero")
+        else:
+            # instance.purchased_quantity = 0
+            instance.total_sale_price = instance.unit_sale_price * instance.sale_quantity
+            if instance.sale_quantity > instance.delivery_quantity:
+                instance.quantity += instance.sale_quantity
+                instance.yet_to_deliver += (instance.sale_quantity - instance.delivery_quantity)
+            elif instance.delivery_quantity > instance.sale_quantity:
+                instance.quantity += instance.sale_quantity
+                instance.yet_to_deliver -= instance.delivery_quantity
+            else:
+                instance.quantity += instance.sale_quantity
+            instance.total_sale_price = instance.sale_quantity * instance.unit_sale_price
+            messages.success(request, "Issued SUCCESSFULLY. " + str(instance.quantity) + " " + str(
+                instance.item_name) + "s sold")
+            instance.save()
+            issue_history = StockHistory(
+                last_updated=instance.last_updated,
+                category_id=instance.category_id,
+                item_name=instance.item_name,
+                waybill_number=instance.waybill_number,
+                quantity=instance.quantity,
+                sale_to=instance.sale_to,
+                sale_by=instance.sale_by,
+                sale_quantity=instance.sale_quantity,
+                unit_sale_price=instance.unit_sale_price,
+                total_sale_price=instance.total_sale_price,
+                delivery_quantity=instance.delivery_quantity,
+                payment_status=instance.payment_status,
+                balance=instance.balance,
+                receipt_no=instance.receipt_no,
+            )
+            issue_history.save()
+
+        return redirect('list_items')
+    # return HttpResponseRedirect(instance.get_absolute_url())
+
+    context = {
+        "queryset": queryset,
+        "form": form,
+    }
+    return render(request, "inventory/add_item.html", context)
+
+
+def receive_items(request, pk):
+    queryset = Stock.objects.get(id=pk)
+    form = ReceiveForm(request.POST or None, instance=queryset)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        # instance.sale_quantity = 0
+        instance.total_returned_price = instance.unit_returned_price * instance.returned_quantity
+        instance.quantity -= instance.returned_quantity
+        instance.total_returned_price = instance.unit_returned_price * instance.unit_returned_price
+        instance.save()
+        receive_history = StockHistory(
+            last_updated=instance.last_updated,
+            category_id=instance.category_id,
+            item_name=instance.item_name,
+            waybill_number=instance.waybill_number,
+            quantity=instance.quantity,
+            returned_quantity=instance.purchased_quantity,
+            returned_by=instance.purchased_by,
+            unit_returned_price=instance.unit_purchase_price,
+            total_returned_price=instance.total_purchase_price,
+        )
+        receive_history.save()
+        messages.success(request, "Returned SUCCESSFULLY. " + str(instance.quantity) + " " + str(
+            instance.item_name) + "s now sold")
+
+        return redirect('list_items')
+    # return HttpResponseRedirect(instance.get_absolute_url())
+    context = {
+        "instance": queryset,
+        "form": form,
+        "username": 'Receive By: ' + str(request.user),
+    }
+    return render(request, "inventory/add_item.html", context)
+
+
+def list_history(request):
+    header = 'HISTORY DATA'
+    queryset = StockHistory.objects.all().order_by("-last_updated")
+    paginator = Paginator(queryset, 15)
+    page_number = request.GET.get('page')
+    queryset = paginator.get_page(page_number)
+    form = StockHistorySearchForm(request.POST or None)
+    context = {
+        "header": header,
+        "queryset": queryset,
+        "form": form,
+    }
+    if request.method == 'POST':
+        category = form['category'].value()
+        # queryset = StockHistory.objects.filter(
+        #     item_name__icontains=form['item_name'].value()
+        # )
+
+        queryset = StockHistory.objects.filter(
+            item_name__icontains=form['item_name'].value(),
+            last_updated__range=[
+                form['start_date'].value(),
+                form['end_date'].value()
+            ]
+        )
+
+        if category != '':
+            queryset = queryset.filter(category_id=category).order_by("-last_updated")
+
+        if form['export_to_CSV'].value() == True:
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Stock History.csv"'
+            writer = csv.writer(response)
+            writer.writerow(
+                ['CATEGORY',
+                 'RECEIPT NO',
+                 'WAYBILL NO',
+                 'ITEM NAME',
+                 'QUANTITY',
+                 'ISSUE QUANTITY',
+                 'RECEIVE QUANTITY',
+                 'RECEIVE BY',
+                 'ISSUE BY',
+                 'TOTAL SALE PRICE',
+                 'TOTAL PURCHASE PRICE',
+                 'LAST UPDATED'])
+            instance = queryset
+            for stock in instance:
+                writer.writerow(
+                    [stock.category,
+                     stock.receipt_no,
+                     stock.waybill_number,
+                     stock.item_name,
+                     stock.quantity,
+                     stock.sale_quantity,
+                     stock.returned_quantity,
+                     stock.returned_by,
+                     stock.sale_by,
+                     stock.total_sale_price,
+                     stock.total_returned_price,
+                     stock.last_updated])
+            return response
+
+        paginator = Paginator(queryset, 15)
+        page_number = request.GET.get('page')
+        queryset = paginator.get_page(page_number)
+
+        context = {
+            "form": form,
+            "header": header,
+            "queryset": queryset,
+        }
+    return render(request, "inventory/list_history.html", context)

@@ -19,4 +19,13 @@ urlpatterns = [
     path("customer/<int:pk>/", views.CustomerDetailView.as_view(), name='customer_detail'),
     path("customer/<int:pk>/edit", views.CustomerUpdateView.as_view(), name='customer_edit'),
     path("customer/<int:pk>/delete", views.CustomerDeleteView.as_view(), name='customer_delete'),
+
+    # inventory
+    path('list_items/', views.list_item, name='list_items'),
+    path('stock_detail/<str:pk>/', views.stock_detail, name="stock_detail"),
+    path('add_items/', views.add_items, name='add_items'),
+    path('update_items/<str:pk>/', views.update_items, name="update_items"),
+    path('issue_items/<str:pk>/', views.issue_items, name="issue_items"),
+    path('receive_items/<str:pk>/', views.receive_items, name="receive_items"),
+    path('list_history/', views.list_history, name='list_history'),
 ]

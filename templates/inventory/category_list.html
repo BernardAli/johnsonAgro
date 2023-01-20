@@ -19,33 +19,36 @@
         <!-- Left side columns -->
         <div class="col-lg-10">
           <div class="row">
-
-              {%for category in categories%}
             <!-- Sales Card -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card mb-3">
-                <div class="row g-0">
-                  <div class="col-md-4">
-                    <img src="{{category.image.url}}" class="img-fluid rounded-start" alt="...">
-                  </div>
-                  <div class="col-md-8">
-                    <div class="card-body">
-                      <h5 class="card-title">{{category.name}}</h5>
-                      <p class="card-text">{{category.description}}</p>
-                        <p><a href="{% url 'category_edit' category.pk %}">Edit</a></p>
-                        <p><a href="{% url 'category_delete' category.pk %}">Delete</a></p>
-                    </div>
-                  </div>
+            <div class="card recent-sales overflow-auto">
+
+                <div class="card-body">
+                  <h5 class="card-title">All Categories</h5>
+
+                  <table class="table table-borderless datatable table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Customer Name</th>
+                        <th scope="col">description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                   {%for items in categories%}
+                      <tr>
+                        <th scope="row">{{forloop.counter}}</th>
+                        <td>{{items.name}}</td>
+                        <td>{{items.description}}</td>
+                        <td><a href="{% url 'category_edit' items.pk %}"><i class="bi bi-tags btn btn-primary"></i></a></td>
+                        <td><a href="{% url 'category_delete' items.pk %}"><i class="bi bi-tags btn btn-danger"></i></a></td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
                 </div>
+
               </div>
-            </div><!-- End Sales Card -->
-              {% empty %}
-                   <div class="alert border-primary alert-dismissible fade show" role="alert">
-                        No Category Added Yet
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                   </div>
-                    <button type="button" class="btn btn-primary"><a href="{% url 'new_category' %}" style="color:#fff;">Add Category</a></button>
-              {% endfor %}
 
           </div>
         </div><!-- End Left side columns -->

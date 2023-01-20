@@ -63,7 +63,7 @@ class Stock(models.Model):
     item_description = models.TextField(blank=True, null=True)
     quantity = models.IntegerField(default='0', blank=True, null=True)
     returned_quantity = models.IntegerField(default='0', blank=True, null=True)
-    returned_by = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True)
+    returned_by = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, null=True)
     unit_returned_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_returned_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     sale_quantity = models.IntegerField(default='0', blank=True, null=True)
@@ -71,12 +71,11 @@ class Stock(models.Model):
     yet_to_deliver = models.IntegerField(default='0', blank=True, null=True)
     waybill_number = models.CharField(max_length=50, blank=True, null=True)
     sale_by = models.CharField(max_length=50, blank=True, null=True)
-    sale_to = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, related_name='sale_to')
+    sale_to = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, null=True, related_name='sale_to')
     unit_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     payment_status = models.CharField(max_length=50, choices=Invoice_Choice, blank=True, null=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    phone_number = models.CharField(max_length=50, blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
@@ -85,3 +84,69 @@ class Stock(models.Model):
 
     def get_absolute_url(self):
         return reverse("stock_detail", kwargs={"pk": self.pk})
+
+
+class StockHistory(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True)
+    item_name = models.CharField(max_length=50, blank=True, null=True)
+    image = models.ImageField(default='product.png', upload_to='category_pics')
+    receipt_no = models.CharField(max_length=50, blank=True, null=True)
+    item_description = models.TextField(blank=True, null=True)
+    quantity = models.IntegerField(default='0', blank=True, null=True)
+    returned_quantity = models.IntegerField(default='0', blank=True, null=True)
+    returned_by = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, null=True)
+    unit_returned_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_returned_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    sale_quantity = models.IntegerField(default='0', blank=True, null=True)
+    delivery_quantity = models.IntegerField(default='0', blank=True, null=True)
+    yet_to_deliver = models.IntegerField(default='0', blank=True, null=True)
+    waybill_number = models.CharField(max_length=50, blank=True, null=True)
+    sale_by = models.CharField(max_length=50, blank=True, null=True)
+    sale_to = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, null=True, related_name='history_sale_to')
+    unit_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    payment_status = models.CharField(max_length=50, choices=Invoice_Choice, blank=True, null=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_on = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.item_name
+
+
+CASH_CHOICE = (
+    ('Bank', 'Bank'),
+    ('Cash', 'Cash'),
+    ('Momo', 'Momo'),
+)
+
+
+class Cash(models.Model):
+    category = models.CharField(max_length=50, blank=True, null=True, choices=CASH_CHOICE)
+    recipient = models.CharField(max_length=50)
+    detail = models.TextField(max_length=50)
+    created_on = models.DateTimeField(auto_now_add=True)
+    amount_in = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    amount_out = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    issue_by = models.CharField(max_length=50, blank=True, null=True)
+    export_to_CSV = models.BooleanField(default=False)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.category}"
+
+
+class CashHistory(models.Model):
+    category = models.CharField(max_length=50, blank=True, null=True, choices=CASH_CHOICE)
+    recipient = models.CharField(max_length=50, blank=True, null=True)
+    detail = models.TextField(max_length=50, blank=True, null=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    amount_in = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    amount_out = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    issue_by = models.CharField(max_length=50, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.category}"

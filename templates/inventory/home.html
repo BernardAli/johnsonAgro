@@ -62,7 +62,7 @@
                       <i class="bi bi-boxes"></i>
                     </div>
                     <div class="ps-3">
-                      <h6></h6>
+                      <h6>{{items_count}}</h6>
 
                     </div>
                   </div>
@@ -83,7 +83,7 @@
                       <i class="bi bi-cash"></i>
                     </div>
                     <div class="ps-3">
-                      <h6></h6>
+                      <h6>{{total_sales|intcomma}}</h6>
 
                     </div>
                   </div>
@@ -105,7 +105,7 @@
                       <i class="bi bi-cash"></i>
                     </div>
                     <div class="ps-3">
-                      <h6></h6>
+                      <h6>{{total_debt|intcomma}}</h6>
 
                     </div>
                   </div>
@@ -118,159 +118,156 @@
 
 
             <!-- Recent Sales -->
-<!--            <div class="col-12">-->
-<!--              <div class="card recent-sales overflow-auto">-->
+            <div class="col-12">
+              <div class="card recent-sales overflow-auto">
 
-<!--                <div class="card-body">-->
-<!--                  <h5 class="card-title">Recent Sales</h5>-->
+                <div class="card-body">
+                  <h5 class="card-title">Recent Sales</h5>
 
-<!--                  <table class="table table-borderless datatable table-hover">-->
-<!--                    <thead>-->
-<!--                      <tr>-->
-<!--                        <th scope="col">#</th>-->
-<!--                        <th scope="col">Customer</th>-->
-<!--                        <th scope="col">Product</th>-->
-<!--                        <th scope="col">Price (GHS)</th>-->
-<!--                        <th scope="col">Quantity</th>-->
-<!--                        <th scope="col">Status</th>-->
-<!--                      </tr>-->
-<!--                    </thead>-->
-<!--                    <tbody>-->
-<!--                    {% for item in recent_sales%}-->
-<!--                      <tr>-->
-<!--                        <th scope="row">{{forloop.counter}}</th>-->
-<!--                        <td>{{item.sale_to}}</td>-->
-<!--                        <td>{{item.item_name}}</td>-->
-<!--                        <td>{{item.unit_sale_price}}</td>-->
-<!--                        <td>{{item.sale_quantity}}</td>-->
-<!--                        <td>-->
-<!--                          {% if item.payment_status == 'Full Payment' %}-->
-<!--                            <span class="badge bg-success">{{item.payment_status}}</span>-->
-<!--                          {% else %}-->
-<!--                            <span class="badge bg-warning">{{item.payment_status}}</span>-->
-<!--                          {% endif %}-->
-<!--                        </td>-->
-<!--                      </tr>-->
-<!--                    {% endfor %}-->
-<!--                    </tbody>-->
-<!--                  </table>-->
+                  <table class="table table-borderless datatable table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price (GHS)</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in recent_sales%}
+                      <tr>
+                        <th scope="row">{{forloop.counter}}</th>
+                        <td>{{item.sale_to}}</td>
+                        <td>{{item.item_name}}</td>
+                        <td>{{item.unit_sale_price}}</td>
+                        <td>{{item.sale_quantity}}</td>
+                        <td>
+                          {% if item.payment_status == 'Full Payment' %}
+                            <span class="badge bg-success">{{item.payment_status}}</span>
+                          {% else %}
+                            <span class="badge bg-warning">{{item.payment_status}}</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
 
-<!--                </div>-->
+                </div>
 
-<!--              </div>-->
-<!--            </div>-->
+              </div>
+            </div>
             <!-- End Recent Sales -->
 
             <!-- Recent Sales -->
-<!--            <div class="col-12">-->
-<!--              <div class="card recent-sales overflow-auto">-->
+            <div class="col-12">
+              <div class="card recent-sales overflow-auto">
 
-<!--                <div class="card-body">-->
-<!--                  <h5 class="card-title">Debtors</h5>-->
+                <div class="card-body">
+                  <h5 class="card-title">Debtors</h5>
 
-<!--                  <table class="table table-border table-hover datatable">-->
-<!--                    <thead>-->
-<!--                      <tr>-->
-<!--                        <th scope="col">#</th>-->
-<!--                        <th scope="col">Customer</th>-->
-<!--                        <th scope="col">Total Balance</th>-->
-<!--                      </tr>-->
-<!--                    </thead>-->
-<!--                    <tbody>-->
-<!--                    {% for item in receivables%}-->
-<!--                      <tr>-->
-<!--                        <th scope="row">{{forloop.counter}}</th>-->
-<!--                        <td>{{item.sale_to}}</td>-->
-<!--                        <td style="background:orange; color:#fff;"><span>{{item.dcount}}</span></td>-->
-<!--                      </tr>-->
-<!--                    {% endfor %}-->
-<!--                    </tbody>-->
-<!--                  </table>-->
+                  <table class="table table-border table-hover datatable">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Total Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in receivables%}
+                      <tr>
+                        <th scope="row">{{forloop.counter}}</th>
+                        <td>{{item.sale_to}}</td>
+                        <td style="background:orange; color:#fff;"><span>{{item.dcount}}</span></td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
 
-<!--                </div>-->
+                </div>
 
-<!--              </div>-->
-<!--            </div>-->
+              </div>
+            </div>
             <!-- End Recent Sales -->
 
           </div>
         </div><!-- End Left side columns -->
 
         <!-- Right side columns -->
-<!--        <div class="col-lg-4">-->
+        <div class="col-lg-4">
 
-<!--          {% if request.user.is_authenticated and request.user.is_superuser %}-->
-<!--          &lt;!&ndash; Recent Activity &ndash;&gt;-->
-<!--          <div class="card">-->
+          <!-- Recent Activity -->
+          <div class="card">
 
-<!--            <div class="card-body">-->
-<!--              <h5 class="card-title">Recent Cash Activity</h5>-->
+            <div class="card-body">
+              <h5 class="card-title">Recent Cash Activity</h5>
 
-<!--              <div class="activity">-->
+              <div class="activity">
 
-<!--                {% for recent in  recent_cash_activities%}-->
-<!--                  {% if recent.amount_in > 0 %}-->
-<!--                    <div class="activity-item d-flex">-->
-<!--                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>-->
-<!--                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>-->
-<!--                      <div class="activity-content">-->
-<!--                        GHS {{recent.amount_in}} received from for {{recent.detail}}-->
-<!--                      </div>-->
-<!--                    </div>&lt;!&ndash; End activity item&ndash;&gt;-->
-<!--                  {% else %}-->
-<!--                    <div class="activity-item d-flex">-->
-<!--                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>-->
-<!--                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>-->
-<!--                      <div class="activity-content">-->
-<!--                        We paid <a href="#" class="fw-bold text-dark">GHS{{recent.amount_out}}</a> for {{recent.detail}}-->
-<!--                      </div>-->
-<!--                    </div>&lt;!&ndash; End activity item&ndash;&gt;-->
-<!--                  {% endif %}-->
-<!--                {% empty %}-->
-<!--                {% endfor %}-->
+                {% for recent in  recent_cash_activities%}
+                  {% if recent.amount_in > 0 %}
+                    <div class="activity-item d-flex">
+                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
+                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                      <div class="activity-content">
+                        GHS {{recent.amount_in}} received from for {{recent.detail}}
+                      </div>
+                    </div><!-- End activity item-->
+                  {% else %}
+                    <div class="activity-item d-flex">
+                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
+                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                      <div class="activity-content">
+                        We paid <a href="#" class="fw-bold text-dark">GHS{{recent.amount_out}}</a> for {{recent.detail}}
+                      </div>
+                    </div><!-- End activity item-->
+                  {% endif %}
+                {% empty %}
+                {% endfor %}
 
-<!--              </div>-->
+              </div>
 
-<!--            </div>-->
-<!--          </div>&lt;!&ndash; End Recent Activity &ndash;&gt;-->
+            </div>
+          </div><!-- End Recent Activity -->
 
-<!--          {% endif %}-->
+          <!-- Recent Activity -->
+          <div class="card">
 
-<!--          &lt;!&ndash; Recent Activity &ndash;&gt;-->
-<!--          <div class="card">-->
+            <div class="card-body">
+              <h5 class="card-title">Recent Inventory Activity</h5>
 
-<!--            <div class="card-body">-->
-<!--              <h5 class="card-title">Recent Inventory Activity</h5>-->
+              <div class="activity">
 
-<!--              <div class="activity">-->
+                {% for recent in  recent_activities%}
+                  {% if recent.sale_quantity > 0 %}
+                    <div class="activity-item d-flex">
+                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
+                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                      <div class="activity-content">
+                        {{recent.sale_to}} bought <a href="#" class="fw-bold text-dark">{{recent.sale_quantity}}</a> {{recent.item_name}}
+                      </div>
+                    </div><!-- End activity item-->
+                  {% else %}
+                    <div class="activity-item d-flex">
+                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
+                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                      <div class="activity-content">
+                        We received <a href="#" class="fw-bold text-dark">{{recent.purchased_quantity}}</a> {{recent.item_name}}
+                      </div>
+                    </div><!-- End activity item-->
+                  {% endif %}
+                {% empty %}
+                {% endfor %}
 
-<!--                {% for recent in  recent_activities%}-->
-<!--                  {% if recent.sale_quantity > 0 %}-->
-<!--                    <div class="activity-item d-flex">-->
-<!--                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>-->
-<!--                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>-->
-<!--                      <div class="activity-content">-->
-<!--                        {{recent.sale_to}} bought <a href="#" class="fw-bold text-dark">{{recent.sale_quantity}}</a> {{recent.item_name}}-->
-<!--                      </div>-->
-<!--                    </div>&lt;!&ndash; End activity item&ndash;&gt;-->
-<!--                  {% else %}-->
-<!--                    <div class="activity-item d-flex">-->
-<!--                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>-->
-<!--                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>-->
-<!--                      <div class="activity-content">-->
-<!--                        We received <a href="#" class="fw-bold text-dark">{{recent.purchased_quantity}}</a> {{recent.item_name}}-->
-<!--                      </div>-->
-<!--                    </div>&lt;!&ndash; End activity item&ndash;&gt;-->
-<!--                  {% endif %}-->
-<!--                {% empty %}-->
-<!--                {% endfor %}-->
+              </div>
 
-<!--              </div>-->
+            </div>
+          </div><!-- End Recent Activity -->
 
-<!--            </div>-->
-<!--          </div>&lt;!&ndash; End Recent Activity &ndash;&gt;-->
-
-<!--        </div>-->
+        </div>
             <!-- End Right side columns -->
 
       </div>
