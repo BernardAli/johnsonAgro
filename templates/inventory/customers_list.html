@@ -1,0 +1,67 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+
+     <div class="pagetitle">
+      <h1>All Customers</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+          <li class="breadcrumb-item active">Customers</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+
+     <section class="section dashboard">
+      <div class="row">
+
+        <!-- Left side columns -->
+        <div class="col-lg-10">
+          <div class="row">
+            <!-- Sales Card -->
+            <div class="card recent-sales overflow-auto">
+
+                <div class="card-body">
+                  <h5 class="card-title">All Customers</h5>
+
+                  <table class="table table-borderless datatable table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Customer Name</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Contact No.</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Country</th>
+                        <th scope="col">Edit</th>
+                        <th scope="col">Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                   {%for customer in customers%}
+                      <tr>
+                        <th scope="row">{{forloop.counter}}</th>
+                        <td>{{customer.name}}</td>
+                        <td>{{customer.location}}</td>
+                        <td>{{customer.contact_no}}</td>
+                        <td>{{customer.category}}</td>
+                        <td>{{customer.country}}</td>
+                        <td><a href="{% url 'customer_edit' customer.pk %}"><i class="bi bi-tags btn btn-primary"></i></a></td>
+                        <td><a href="{% url 'customer_delete' customer.pk %}"><i class="bi bi-tags btn btn-danger"></i></a></td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
+                </div>
+
+              </div>
+
+          </div>
+        </div><!-- End Left side columns -->
+
+      </div>
+    </section>
+
+{% endblock content %}

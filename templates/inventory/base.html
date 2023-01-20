@@ -91,6 +91,24 @@
         </ul>
       </li><!-- End Icons Nav -->
 
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#icons-customers" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-people"></i><span>Customers</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="icons-customers" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="{% url 'customer_list' %}">
+              <i class="bi bi-circle"></i><span>List Customers</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'new_customer' %}">
+              <i class="bi bi-circle"></i><span>Add New Customer</span>
+            </a>
+          </li>
+        </ul>
+      </li><!-- End Icons Nav -->
+
     </ul>
 
   </aside><!-- End Sidebar-->

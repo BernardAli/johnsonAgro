@@ -4,11 +4,11 @@
 {% block content %}
 
      <div class="pagetitle">
-      <h1>Delete Category</h1>
+      <h1>New Category</h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-          <li class="breadcrumb-item active">Delete Category</li>
+          <li class="breadcrumb-item active">New Category</li>
         </ol>
       </nav>
     </div><!-- End Page Title -->
@@ -21,9 +21,9 @@
         <div class="col-lg-8">
             <form action="" method="post">
                 {% csrf_token %}
-                <p>Are you sure you want to delete?</p>
+                {{ form|crispy }}
                 <a href="{% url 'category_list' %}"><div class="btn btn-secondary">Cancel</div></a>
-                <input type="submit" value='Delete' class="btn btn-danger"/>
+                <input type="submit" value='Save' class="btn btn-primary"/>
             </form>
         </div><!-- End Left side columns -->
 
