@@ -7,7 +7,11 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Johnson Nkansah</title>
+  <title>Johnson Nkansah |
+    {% block title %}
+      Home
+    {% endblock title %}
+  </title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -46,7 +50,7 @@
           <li><a class="active" href="{% url 'home' %}">Home</a></li>
           <li><a href="{% url 'about' %}">About</a></li>
           <li><a href="{% url 'resume' %}">Resume</a></li>
-          <li><a href="{% url 'services' %}">Services</a></li>
+          <li><a href="{% url 'products' %}">Products</a></li>
           <li><a href="{% url 'contact' %}">Contact</a></li>
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>

@@ -19,5 +19,9 @@ def services_page(request):
     return render(request, 'services.html')
 
 
+def products_page(request):
+    return render(request, 'products.html')
+
+
 def contact_page(request):
     return render(request, 'contact.html')
