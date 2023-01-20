@@ -25,3 +25,23 @@ class Category(models.Model):
             output_size = (300, 300)
             img.thumbnail(output_size)
             img.save(self.image.path)
+
+
+MARKET_CATEGORY = (
+    ('Local', 'Local'),
+    ('Foreign', 'Foreign'),
+)
+
+
+class Customers(models.Model):
+    name = models.CharField(max_length=50, blank=True, null=True)
+    location = models.CharField(max_length=50, blank=True, null=True)
+    contact_no = models.CharField(max_length=50, blank=True, null=True)
+    category = models.CharField(max_length=50, choices=MARKET_CATEGORY, blank=True, null=True)
+    country = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("customer_detail", kwargs={"pk": self.pk})
