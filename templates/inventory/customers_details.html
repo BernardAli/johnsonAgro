@@ -1,48 +1,38 @@
 {% extends 'inventory/base.html' %}
 {% load humanize %}
 
-{% block title %}
-      Home
-{% endblock title %}
-
-
 {% block content %}
-    <div class="pagetitle">
-      <h1>Dashboard</h1>
+
+     <div class="pagetitle">
+      <h1>{{customer.name}}</h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-          <li class="breadcrumb-item active">Dashboard</li>
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Customers</a></li>
+          <li class="breadcrumb-item active">{{customer.name}}</li>
         </ol>
       </nav>
     </div><!-- End Page Title -->
 
-<section class="section dashboard">
-      <div class="row">
 
-        <!-- Left side columns -->
-        <div class="col-lg-8">
-          <div class="row">
+     <section class="section dashboard">
+         <div class="row">
 
             <!-- Sales Card -->
             <div class="col-xxl-3 col-md-3">
               <div class="card info-card sales-card">
 
                 <div class="card-body">
-                  <h5 class="card-title">{% if customers_count > 1%}
-                    <a href="{% url 'customer_list' %}">Customers</a>
-                    {% else %}
-                      <a href="{% url 'customer_list' %}">Customer</a>
-                    {% endif %}
-
+                  <h5 class="card-title">
+                    Phone No.
                   </h5>
 
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-people"></i>
+                      <i class="bi bi-phone"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><small></small>{{customers_count}}</h6></div>
+                      <h6><small></small>{{customer.contact_no}}</h6></div>
                   </div>
                 </div>
 
@@ -55,16 +45,14 @@
 
 
                 <div class="card-body">
-                  <h5 class="card-title">
-                    <a href="{% url 'list_items' %}">Items</a>
-                  </h5>
+                  <h5 class="card-title">Location</h5>
 
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                       <i class="bi bi-boxes"></i>
                     </div>
                     <div class="ps-3">
-                      <h6>{{items_count}}</h6>
+                      <h6>{{customer.location}}</h6>
 
                     </div>
                   </div>
@@ -124,27 +112,29 @@
               <div class="card recent-sales overflow-auto">
 
                 <div class="card-body">
-                  <h5 class="card-title">Recent Sales</h5>
+                  <h5 class="card-title">Sales</h5>
 
                   <table class="table table-borderless datatable table-hover">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Customer</th>
+                        <th scope="col">Date</th>
                         <th scope="col">Product</th>
                         <th scope="col">Price (GHS)</th>
                         <th scope="col">Quantity</th>
+                        <th scope="col">Total Price</th>
                         <th scope="col">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                    {% for item in recent_sales%}
+                    {% for item in recent_activities%}
                       <tr>
                         <th scope="row">{{forloop.counter}}</th>
-                        <td>{{item.sale_to.name}}</td>
+                        <td>{{item.created_on}}</td>
                         <td>{{item.item_name}}</td>
-                        <td>{{item.unit_sale_price}}</td>
+                        <td>{{item.unit_sale_price|intcomma}}</td>
                         <td>{{item.sale_quantity}}</td>
+                        <td>{{item.total_sale_price|intcomma}}</td>
                         <td>
                           {% if item.payment_status == 'Full Payment' %}
                             <span class="badge bg-success">{{item.payment_status}}</span>
@@ -174,16 +164,20 @@
                     <thead>
                       <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Customer</th>
-                        <th scope="col">Total Balance</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Detail</th>
+                        <th scope="col">Amount</th>
                       </tr>
                     </thead>
                     <tbody>
-                    {% for item in receivables%}
+                    {% for item in recent_cash_activities%}
                       <tr>
                         <th scope="row">{{forloop.counter}}</th>
-                        <td>{{item.sale_to}}</td>
-                        <td style="background:orange; color:#fff;"><span>{{item.dcount}}</span></td>
+                        <td>{{item.created_on}}</td>
+                        <td>{{item.category}}</td>
+                        <td>{{item.detail}}</td>
+                        <td>{{item.amount_in}}</td>
                       </tr>
                     {% endfor %}
                     </tbody>
@@ -196,83 +190,6 @@
             <!-- End Recent Sales -->
 
           </div>
-        </div><!-- End Left side columns -->
-
-        <!-- Right side columns -->
-        <div class="col-lg-4">
-
-          <!-- Recent Activity -->
-          <div class="card">
-
-            <div class="card-body">
-              <h5 class="card-title">Recent Cash Activity</h5>
-
-              <div class="activity">
-
-                {% for recent in  recent_cash_activities%}
-                  {% if recent.amount_in > 0 %}
-                    <div class="activity-item d-flex">
-                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
-                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                      <div class="activity-content">
-                        GHS {{recent.amount_in}} received from for {{recent.detail}}
-                      </div>
-                    </div><!-- End activity item-->
-                  {% else %}
-                    <div class="activity-item d-flex">
-                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
-                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                      <div class="activity-content">
-                        We paid <a href="#" class="fw-bold text-dark">GHS{{recent.amount_out}}</a> for {{recent.detail}}
-                      </div>
-                    </div><!-- End activity item-->
-                  {% endif %}
-                {% empty %}
-                {% endfor %}
-
-              </div>
-
-            </div>
-          </div><!-- End Recent Activity -->
-
-          <!-- Recent Activity -->
-          <div class="card">
-
-            <div class="card-body">
-              <h5 class="card-title">Recent Inventory Activity</h5>
-
-              <div class="activity">
-
-                {% for recent in  recent_activities%}
-                  {% if recent.sale_quantity > 0 %}
-                    <div class="activity-item d-flex">
-                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
-                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                      <div class="activity-content">
-                        {{recent.sale_to}} bought <a href="#" class="fw-bold text-dark">{{recent.sale_quantity}}</a> {{recent.item_name}}
-                      </div>
-                    </div><!-- End activity item-->
-                  {% else %}
-                    <div class="activity-item d-flex">
-                      <div class="activite-label">{{recent.last_updated|naturaltime}}</div>
-                      <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                      <div class="activity-content">
-                        We received <a href="#" class="fw-bold text-dark">{{recent.purchased_quantity}}</a> {{recent.item_name}}
-                      </div>
-                    </div><!-- End activity item-->
-                  {% endif %}
-                {% empty %}
-                {% endfor %}
-
-              </div>
-
-            </div>
-          </div><!-- End Recent Activity -->
-
-        </div>
-            <!-- End Right side columns -->
-
-      </div>
     </section>
 
 {% endblock content %}

@@ -42,7 +42,7 @@
                    {%for customer in customers%}
                       <tr>
                         <th scope="row">{{forloop.counter}}</th>
-                        <td>{{customer.name}}</td>
+                        <td><a href="{{ customer.get_absolute_url }}">{{customer.name}}</a></td>
                         <td>{{customer.location}}</td>
                         <td>{{customer.contact_no}}</td>
                         <td>{{customer.category}}</td>

@@ -1,4 +1,5 @@
 import csv
+import datetime
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -8,13 +9,15 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, DeleteView, UpdateView, CreateView
 
-from .forms import StockCreateForm, StockUpdateForm, IssueForm, ReceiveForm, StockHistorySearchForm
-from .models import Category, Customers, Stock, StockHistory
+from .forms import StockCreateForm, StockUpdateForm, IssueForm, ReceiveForm, StockHistorySearchForm, IssueCashForm, \
+    ReceiveCashForm, CashHistorySearchForm
+from .models import Category, Customers, Stock, StockHistory, Cash, CashHistory
 
 
 def index_page(request):
     customers_count = Customers.objects.all().count()
     items_count = Stock.objects.all().count()
+    recent_cash_activities = CashHistory.objects.all().order_by("-last_updated")[:10]
     recent_activities = StockHistory.objects.all().order_by("-last_updated")[:10]
     receivables = StockHistory.objects.values('sale_to').annotate(dcount=Sum('balance')).filter(dcount__gt=0)
     total_debt = StockHistory.objects.aggregate(Sum('balance'))['balance__sum']
@@ -28,7 +31,8 @@ def index_page(request):
         'total_debt': total_debt,
         "recent_sales": recent_sales,
         'total_sales': total_sales,
-        'recent_activities': recent_activities
+        'recent_activities': recent_activities,
+        'recent_cash_activities': recent_cash_activities
     }
     return render(request, 'inventory/home.html', context)
 
@@ -70,9 +74,26 @@ class CustomerListView(ListView):
     context_object_name = 'customers'
 
 
-class CustomerDetailView(DetailView):
-    model = Customers
-    template_name = 'inventory/customers_details.html'
+def customer_details(request, pk):
+    customer = Customers.objects.get(id=pk)
+    recent_activities = StockHistory.objects.filter(sale_to__id=customer.id).order_by("-last_updated")
+    recent_cash_activities = CashHistory.objects.filter(issue_by=customer.name).order_by("-last_updated")
+    total_debt = StockHistory.objects.filter(sale_to__id=customer.id).aggregate(Sum('balance'))['balance__sum']
+    total_sales = StockHistory.objects.filter(sale_to__id=customer.id).aggregate(Sum('total_sale_price'))['total_sale_price__sum']
+    context = {
+        'customer': customer,
+        'recent_activities': recent_activities,
+        'total_debt': total_debt,
+        'total_sales': total_sales,
+        'recent_cash_activities': recent_cash_activities
+    }
+    return render(request, 'inventory/customers_details.html', context)
+
+
+# class CustomerDetailView(DetailView):
+#     model = Customers
+#     context_object_name = 'customer'
+#     template_name = 'inventory/customers_details.html'
 
 
 class CustomerCreateView(CreateView):
@@ -93,6 +114,16 @@ class CustomerDeleteView(DeleteView):
     model = Customers
     template_name = 'inventory/customers_delete.html'
     success_url = reverse_lazy("customer_list")
+
+
+def list_receivables(request):
+    debtors = StockHistory.objects.filter(balance__gt=0).order_by("-last_updated") | \
+              StockHistory.objects.filter(balance__lt=0).order_by("-last_updated")
+    context = {
+        'debtors': debtors,
+        'now':  datetime.datetime.now().astimezone()
+    }
+    return render(request, 'inventory/list_receivables.html', context)
 
 
 def list_item(request):
@@ -298,3 +329,143 @@ def list_history(request):
             "queryset": queryset,
         }
     return render(request, "inventory/list_history.html", context)
+
+
+def cash_item(request):
+
+    queryset = Cash.objects.all()
+    context = {
+        "queryset": queryset,
+    }
+
+    return render(request, "inventory/cash_item.html", context)
+
+
+def cash_detail(request, pk):
+    queryset = Cash.objects.get(id=pk)
+    context = {
+        "queryset": queryset,
+    }
+    return render(request, "inventory/cash_detail.html", context)
+
+
+def issue_cash(request, pk):
+    queryset = Cash.objects.get(id=pk)
+    form = IssueCashForm(request.POST or None, instance=queryset)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        if instance.amount_out > instance.balance:
+            messages.success(request, "Not Enough Cash")
+        else:
+            # instance.purchased_quantity = 0
+            instance.balance -= instance.amount_out
+            instance.issue_by = str(request.user)
+            messages.success(request, "Issued SUCCESSFULLY. " + str(instance.balance) + " " + str(
+                instance.category) + " balance left")
+            instance.save()
+            cash_issue_history = CashHistory(
+                last_updated=instance.last_updated,
+                category=instance.category,
+                detail=instance.detail,
+                recipient=instance.recipient,
+                issue_by=instance.issue_by,
+                amount_out=instance.amount_out,
+                created_on=instance.created_on,
+                balance=instance.balance,
+            )
+            cash_issue_history.save()
+
+        return redirect('cash_items')
+    # return HttpResponseRedirect(instance.get_absolute_url())
+
+    context = {
+        "queryset": queryset,
+        "form": form,
+        "username": 'Issue By: ' + str(request.user),
+    }
+    return render(request, "inventory/add_item.html", context)
+
+
+def receive_cash(request, pk):
+    queryset = Cash.objects.get(id=pk)
+    form = ReceiveCashForm(request.POST or None, instance=queryset)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        # instance.purchased_quantity = 0
+        instance.balance += instance.amount_in
+        messages.success(request, "Received SUCCESSFULLY. " + str(instance.balance) + " " + str(
+            instance.category) + " balance left")
+        instance.save()
+        cash_receive_history = CashHistory(
+            last_updated=instance.last_updated,
+            category=instance.category,
+            recipient=instance.recipient,
+            detail=instance.detail,
+            issue_by=instance.issue_by,
+            amount_in=instance.amount_in,
+            created_on=instance.created_on,
+            balance=instance.balance,
+        )
+        cash_receive_history.save()
+
+        return redirect('cash_items')
+
+    context = {
+        "queryset": queryset,
+        "form": form,
+        "username": 'Received By: ' + str(request.user),
+    }
+    return render(request, "inventory/add_item.html", context)
+
+
+def cash_history(request):
+    header = 'CASH HISTORY'
+    queryset = CashHistory.objects.all()
+    form = CashHistorySearchForm(request.POST or None)
+    context = {
+        "header": header,
+        "queryset": queryset,
+        "form": form,
+    }
+    if request.method == 'POST':
+
+        queryset = CashHistory.objects.filter(
+            category__icontains=form['category'].value(),
+            last_updated__range=[
+                form['start_date'].value(),
+                form['end_date'].value()
+            ]
+        )
+
+        if form['export_to_CSV'].value() == True:
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Stock History.csv"'
+            writer = csv.writer(response)
+            writer.writerow(
+                ['CATEGORY',
+                 'RECIPIENT',
+                 'DETAIL',
+                 'RECEIVED AMOUNT',
+                 'PAID AMOUNT',
+                 'BALANCE',
+                 'ISSUED BY',
+                 'LAST UPDATED'])
+            instance = queryset
+            for stock in instance:
+                writer.writerow(
+                    [stock.category,
+                     stock.recipient,
+                     stock.detail,
+                     stock.amount_in,
+                     stock.amount_out,
+                     stock.balance,
+                     stock.issue_by,
+                     stock.last_updated])
+            return response
+
+        context = {
+            "form": form,
+            "header": header,
+            "queryset": queryset,
+        }
+    return render(request, "inventory/cash_history.html", context)

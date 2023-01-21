@@ -129,7 +129,7 @@ class Cash(models.Model):
     amount_in = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     amount_out = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    issue_by = models.CharField(max_length=50, blank=True, null=True)
+    issue_by = models.ForeignKey(Customers, on_delete=models.DO_NOTHING, blank=True, null=True, related_name='paid_by')
     export_to_CSV = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
 

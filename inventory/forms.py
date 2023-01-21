@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Stock, StockHistory
+from .models import Stock, StockHistory, Cash
 
 
 class StockCreateForm(forms.ModelForm):
@@ -57,3 +57,45 @@ class StockHistorySearchForm(forms.ModelForm):
     class Meta:
         model = StockHistory
         fields = ['category', 'item_name', 'export_to_CSV', 'start_date', 'end_date']
+
+
+class IssueCashForm(forms.ModelForm):
+    class Meta:
+        model = Cash
+        fields =["recipient", "detail", "amount_out"]
+
+
+class ReceiveCashForm(forms.ModelForm):
+    class Meta:
+        model = Cash
+        fields = ["issue_by", "detail", "amount_in"]
+
+
+class CashSearchForm(forms.ModelForm):
+    class Meta:
+        model = Cash
+        fields = ["detail"]
+
+
+class CashHistorySearchForm(forms.ModelForm):
+    export_to_CSV = forms.BooleanField(required=False)
+    start_date = forms.DateTimeField(widget=forms.widgets.DateInput(attrs={'type': 'date'}),
+                                     required=False, initial=timezone.now)
+    end_date = forms.DateTimeField(widget=forms.widgets.DateInput(attrs={'type': 'date'}),
+                                   required=False, initial=timezone.now)
+
+    class Meta:
+        model = Cash
+        fields = ['category', 'export_to_CSV', 'start_date', 'end_date']
+
+
+class CashHistorySearchForm(forms.ModelForm):
+    export_to_CSV = forms.BooleanField(required=False)
+    start_date = forms.DateTimeField(widget=forms.widgets.DateInput(attrs={'type': 'date'}),
+                                     required=False, initial=timezone.now)
+    end_date = forms.DateTimeField(widget=forms.widgets.DateInput(attrs={'type': 'date'}),
+                                   required=False, initial=timezone.now)
+
+    class Meta:
+        model = Cash
+        fields = ['category', 'export_to_CSV', 'start_date', 'end_date']
